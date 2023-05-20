@@ -45,14 +45,15 @@ try {
 
     Write-Log "Generated SASToken for uploading content to the storage account"
 
+    $FileUris = @();
+    Get-ChildItem -Path $CommonScriptDir |
+    ForEach-Object {
+        $FileUris += "https://$StorageAccount.blob.core.windows.net/custom-scripts/scripts/$($_.Name)?$SASTokenToDownloadScripts"
+    }
+
     $Setting = @{
         "forceUpdateTag" = "$CurrentTimeStamp"
-        "fileUris"       = @(
-            "https://$StorageAccount.blob.core.windows.net/custom-scripts/scripts/Common.ps1?$SASTokenToDownloadScripts",
-            "https://$StorageAccount.blob.core.windows.net/custom-scripts/scripts/Upload-Blob.ps1?$SASTokenToDownloadScripts",
-            "https://$StorageAccount.blob.core.windows.net/custom-scripts/scripts/Upload-Content.ps1?$SASTokenToDownloadScripts"
-
-        );
+        "fileUris"       = $FileUris
     }
 
     $ProtectedSetting = @{

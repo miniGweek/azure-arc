@@ -1,0 +1,50 @@
+# Parameter help description
+param(
+    # Parameter help description
+    [Parameter(Mandatory)]
+    [String]
+    $StorageAccount
+)
+$CurrentErrorActionPreference = $ErrorActionPreference
+$ErrorActionPreference = 'Stop'
+try {
+    $CurrentScriptPath = $MyInvocation.MyCommand.Path
+    $CurrentScriptDir = Split-Path $CurrentScriptPath -Parent
+    $CommonScriptDir = "$CurrentScriptDir\scripts";
+    $env:LOGFILE_PATH = "C:\Temp\Logs\proc_$env:computername.log"
+
+    . "$CommonScriptDir\Common.ps1"
+    . "$CommonScriptDir\Generate-SASToken.ps1"
+
+    Write-Log "Executing $CurrentScriptPath."
+
+    $SASTokenStartDate = Get-Date;
+    $SASTokenExpirtyDate = $SASTokenStartDate.AddHours(4)
+
+    $SASTokenBase64String = Get-StorageAccountSASToken `
+        -AccountName "$StorageAccount" `
+        -ContainerName "custom-scripts" `
+        -StartTime $SASTokenStartDate `
+        -ExpiryTime $SASTokenExpirtyDate `
+        -Permissions "rdlcw" `
+        -ConvertToBase64
+
+    Get-ChildItem $CommonScriptDir |
+    ForEach-Object {
+        Write-Log "*******************************"
+        Write-Log "Begin upload of  $($_.FullName)"
+        & "$CommonScriptDir\Upload-Blob.ps1" `
+            -FilePath "$($_.FullName)" `
+            -DestinationFolder "scripts" `
+            -StorageAccount "$StorageAccount"`
+            -Container "custom-scripts" `
+            -SASTokenAsBase64String "$SASTokenBase64String" ;
+        Write-Log "*******************************"
+    }
+}
+catch {
+    $_
+}
+finally {
+    $ErrorActionPreference = $CurrentErrorActionPreference
+}

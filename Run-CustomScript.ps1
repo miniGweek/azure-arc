@@ -2,7 +2,11 @@ param(
     [Parameter(Mandatory)][String]$ArcHostName,
     [Parameter(Mandatory)][String]$ResourceGroupName,
     [Parameter(Mandatory)][String]$StorageAccount,
-    [String]$Location = 'australiaeast'
+    [String]$Location = 'australiaeast',
+    [Switch]$UploadRemoteContent,
+    [String]$RemoteFolder,
+    [String]$Container,
+    [String]$SubFolder
 )
 $CurrentErrorActionPreference = $ErrorActionPreference
 $ErrorActionPreference = 'Stop'
@@ -57,7 +61,7 @@ try {
     }
 
     $ProtectedSetting = @{
-        "commandToExecute" = "powershell -ExecutionPolicy Unrestricted -File scripts\Upload-Content.ps1 C:\test_upload $StorageAccount workstation-uploads pcba-tests $SASTokenToUploadFile"
+        "commandToExecute" = "powershell -ExecutionPolicy Unrestricted -File scripts\Upload-Content.ps1 $RemoteFolder $StorageAccount $Container $SubFolder $SASTokenToUploadFile"
     };
 
     Write-Log "Installing CustomScriptExtension and executing script on $ArcHostName."
@@ -76,7 +80,9 @@ try {
     Write-Log "Finished running CustomScriptExtension"
 }
 catch {
-    $_
+    Write-Log "***********Exception Begin***************"
+    Write-Log $_
+    Write-Log "***********Exception End***************"
 }
 finally {
     $ErrorActionPreference = $CurrentErrorActionPreference

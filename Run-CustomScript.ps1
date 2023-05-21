@@ -1,5 +1,5 @@
 param(
-    [Parameter(Mandatory)][String]$ArcHostName,
+    [Parameter(Mandatory)][String]$HostName,
     [Parameter(Mandatory)][String]$ResourceGroupName,
     [Parameter(Mandatory)][String]$StorageAccount,
     [String]$Location = 'australiaeast',    
@@ -8,7 +8,8 @@ param(
     [String]$UploadContainer,
     [String]$SubFolder,
     [Switch]$UploadRemoteContent,
-    [Switch]$InstallPCBATools
+    [Switch]$InstallPCBATools,
+    [Switch]$AzureVM
 )
 $CurrentErrorActionPreference = $ErrorActionPreference
 $ErrorActionPreference = 'Stop'
@@ -76,18 +77,32 @@ try {
         };
     }
 
-    Write-Log "Installing CustomScriptExtension and executing script on $ArcHostName."
+    Write-Log "Installing CustomScriptExtension and executing script on $HostName."
 
-    New-AzConnectedMachineExtension `
-        -Name "CustomScriptExtension" `
-        -ResourceGroupName "$ResourceGroupName" `
-        -MachineName "$ArcHostName" `
-        -Location "$Location" `
-        -Publisher "Microsoft.Compute"  `
-        -Settings $Setting `
-        -ProtectedSetting $ProtectedSetting `
-        -ExtensionType CustomScriptExtension `
-        -TypeHandlerVersion 1.10
+    if ($False -eq $AzureVM.IsPresent) {
+        New-AzConnectedMachineExtension `
+            -Name "CustomScriptExtension" `
+            -ResourceGroupName "$ResourceGroupName" `
+            -MachineName "$HostName" `
+            -Location "$Location" `
+            -Publisher "Microsoft.Compute"  `
+            -Settings $Setting `
+            -ProtectedSetting $ProtectedSetting `
+            -ExtensionType CustomScriptExtension `
+            -TypeHandlerVersion 1.10
+    }
+    else {
+        Set-AzVMExtension `
+            -Name "CustomScriptExtension" `
+            -ResourceGroupName  "$ResourceGroupName" `
+            -VMName "$HostName" `
+            -Location "$Location" `
+            -Publisher "Microsoft.Compute"  `
+            -Settings $Setting `
+            -ProtectedSettings $ProtectedSetting `
+            -ExtensionType CustomScriptExtension `
+            -TypeHandlerVersion 1.10
+    }
 
     Write-Log "Finished running CustomScriptExtension"
 }

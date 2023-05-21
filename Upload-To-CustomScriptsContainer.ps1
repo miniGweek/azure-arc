@@ -51,7 +51,9 @@ try {
     }
 }
 catch {
-    $_
+    Write-Log "***********Exception Begin***************"
+    Write-Log $_
+    Write-Log "***********Exception End***************"
 }
 finally {
     $ErrorActionPreference = $CurrentErrorActionPreference

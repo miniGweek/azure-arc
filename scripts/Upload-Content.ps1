@@ -49,7 +49,9 @@ try {
     Write-Log "Finished uploading file to blob."
 }
 catch {
-    $_
+   Write-Log "***********Exception Begin***************"
+   Write-Log $_
+   Write-Log "***********Exception End***************"
 }
 finally {
     $ErrorActionPreference = $CurrentErrorActionPreference

@@ -1,11 +1,10 @@
 # Parameter help description
 param(
     # Parameter help description
-    [Parameter(Mandatory)]
-    [String]
-    $StorageAccount,
-    [String]
-    $ScriptsDirectory
+    [Parameter(Mandatory)][String]$StorageAccount,
+    [Parameter(Mandatory)][String]$Container,
+    [Parameter(Mandatory)][String]$BlobPath,
+    [String]$ScriptsDirectory
 )
 $CurrentErrorActionPreference = $ErrorActionPreference
 $ErrorActionPreference = 'Stop'
@@ -25,7 +24,7 @@ try {
 
     $SASTokenBase64String = Get-StorageAccountSASToken `
         -AccountName "$StorageAccount" `
-        -ContainerName "custom-scripts" `
+        -ContainerName "$Container" `
         -StartTime $SASTokenStartDate `
         -ExpiryTime $SASTokenExpirtyDate `
         -Permissions "rdlcw" `
@@ -42,9 +41,9 @@ try {
             Write-Log "Begin upload of  $($_.FullName)"
             & "$CommonScriptDir\Upload-Blob.ps1" `
                 -FilePath "$($_.FullName)" `
-                -DestinationFolder "scripts" `
+                -DestinationFolder "$BlobPath" `
                 -StorageAccount "$StorageAccount"`
-                -Container "custom-scripts" `
+                -Container "$Container" `
                 -SASTokenAsBase64String "$SASTokenBase64String" ;
             Write-Log "*******************************"
         }

@@ -29,3 +29,16 @@ Function Test-InstallAndImportModule {
     Import-Module "$ModuleName"
     Write-Log "Imported $ModuleName module."
 }
+
+Function Extract-Cer {
+    param(
+        [string]$CatFilePath,
+        [string]$OutputCerFilePath
+    )
+    Write-Host "Input:$CatFilePath - Output:$OutputCerFilePath"
+    $CatFilePath = (Resolve-Path $CatFilePath).Path
+
+    $exportType = [System.Security.Cryptography.X509Certificates.X509ContentType]::Cert;
+    $cert = (Get-AuthenticodeSignature $CatFilePath).SignerCertificate;
+    [System.IO.File]::WriteAllBytes($OutputCerFilePath, $cert.Export($exportType));
+}

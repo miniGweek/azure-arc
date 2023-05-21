@@ -9,9 +9,7 @@ param(
 $CurrentErrorActionPreference = $ErrorActionPreference
 $ErrorActionPreference = 'Stop'
 try {
-       
     $CurrentScriptPath = $MyInvocation.MyCommand.Path
-    Write-Log $CurrentScriptPath
     $CurrentScriptDir = Split-Path $CurrentScriptPath -Parent
     $CommonScriptDir = "$CurrentScriptDir";
     

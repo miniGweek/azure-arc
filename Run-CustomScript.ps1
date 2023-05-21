@@ -2,11 +2,13 @@ param(
     [Parameter(Mandatory)][String]$ArcHostName,
     [Parameter(Mandatory)][String]$ResourceGroupName,
     [Parameter(Mandatory)][String]$StorageAccount,
-    [String]$Location = 'australiaeast',
-    [Switch]$UploadRemoteContent,
+    [String]$Location = 'australiaeast',    
     [String]$RemoteFolder,
-    [String]$Container,
-    [String]$SubFolder
+    [String]$CustomScriptsContainer,
+    [String]$UploadContainer,
+    [String]$SubFolder,
+    [Switch]$UploadRemoteContent,
+    [Switch]$InstallPCBATools
 )
 $CurrentErrorActionPreference = $ErrorActionPreference
 $ErrorActionPreference = 'Stop'
@@ -50,19 +52,29 @@ try {
     Write-Log "Generated SASToken for uploading content to the storage account"
 
     $FileUris = @();
-    Get-ChildItem -Path $CommonScriptDir |
+
+    New-AzStorageContext -StorageAccountName "$StorageAccount"  -UseConnectedAccount | 
+    Get-AzStorageBlob -Container "$CustomScriptsContainer" |
     ForEach-Object {
-        $FileUris += "https://$StorageAccount.blob.core.windows.net/custom-scripts/scripts/$($_.Name)?$SASTokenToDownloadScripts"
-    }
+        $BlobAbsoluteUri = $_.ICloudBlob.Uri.AbsoluteUri 
+        $FileUris += "$BlobAbsoluteUri`?$SASTokenToDownloadScripts"
+    } 
 
     $Setting = @{
         "forceUpdateTag" = "$CurrentTimeStamp"
         "fileUris"       = $FileUris
     }
 
-    $ProtectedSetting = @{
-        "commandToExecute" = "powershell -ExecutionPolicy Unrestricted -File scripts\Upload-Content.ps1 $RemoteFolder $StorageAccount $Container $SubFolder $SASTokenToUploadFile"
-    };
+    if ($UploadRemoteContent.IsPresent) {
+        $ProtectedSetting = @{
+            "commandToExecute" = "powershell -ExecutionPolicy Unrestricted -File scripts\Upload-Content.ps1 $RemoteFolder $StorageAccount $UploadContainer $SubFolder $SASTokenToUploadFile"
+        };
+    }
+    elseif ($InstallPCBATools.IsPresent) {
+        $ProtectedSetting = @{
+            "commandToExecute" = "powershell -ExecutionPolicy Unrestricted -File scripts\Install-PCBATools.ps1 .\deployment-files .\pcba-test"
+        };
+    }
 
     Write-Log "Installing CustomScriptExtension and executing script on $ArcHostName."
 

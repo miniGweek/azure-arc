@@ -3,7 +3,9 @@ param(
     # Parameter help description
     [Parameter(Mandatory)]
     [String]
-    $StorageAccount
+    $StorageAccount,
+    [String]
+    $ScriptsDirectory
 )
 $CurrentErrorActionPreference = $ErrorActionPreference
 $ErrorActionPreference = 'Stop'
@@ -29,17 +31,23 @@ try {
         -Permissions "rdlcw" `
         -ConvertToBase64
 
-    Get-ChildItem $CommonScriptDir |
+    if ("" -eq $ScriptsDirectory) {
+        $ScriptsDirectory = $CommonScriptDir
+    }
+
+    Get-ChildItem $ScriptsDirectory |
     ForEach-Object {
-        Write-Log "*******************************"
-        Write-Log "Begin upload of  $($_.FullName)"
-        & "$CommonScriptDir\Upload-Blob.ps1" `
-            -FilePath "$($_.FullName)" `
-            -DestinationFolder "scripts" `
-            -StorageAccount "$StorageAccount"`
-            -Container "custom-scripts" `
-            -SASTokenAsBase64String "$SASTokenBase64String" ;
-        Write-Log "*******************************"
+        if ($False -eq $_.PSIsContainer) {
+            Write-Log "*******************************"
+            Write-Log "Begin upload of  $($_.FullName)"
+            & "$CommonScriptDir\Upload-Blob.ps1" `
+                -FilePath "$($_.FullName)" `
+                -DestinationFolder "scripts" `
+                -StorageAccount "$StorageAccount"`
+                -Container "custom-scripts" `
+                -SASTokenAsBase64String "$SASTokenBase64String" ;
+            Write-Log "*******************************"
+        }
     }
 }
 catch {

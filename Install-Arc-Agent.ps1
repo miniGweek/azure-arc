@@ -25,7 +25,6 @@ try {
     } `
         Import-Module Az.ConnectedMachine; `
         $ServicePrincipalClientId = Read-Host "Enter a Service Principal Application Id"; `
-        # $servicePrincipalSecret = Read-Host "Enter the Password"; `
         $ServicePrincipalSecret = Read-Host "Enter the Password" -AsSecureString; `
         $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($ServicePrincipalSecret); `
         $ServicePrincipalSecretPlainText = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR); `

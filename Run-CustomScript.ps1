@@ -3,10 +3,11 @@ param(
     [Parameter(Mandatory)][String]$ResourceGroupName,
     [Parameter(Mandatory)][String]$StorageAccount,
     [String]$Location = 'australiaeast',    
-    [String]$RemoteFolder,
+    [String]$RemoteFolderToUpload,
     [String]$CustomScriptsContainer,
     [String]$UploadContainer,
-    [String]$SubFolder,
+    [String]$BlobPathForRemoteUploadedContent,
+    [String]$TelitBinaryCopyToFolder,
     [Switch]$UploadRemoteContent,
     [Switch]$InstallPCBATools,
     [Switch]$AzureVM
@@ -68,12 +69,12 @@ try {
 
     if ($UploadRemoteContent.IsPresent) {
         $ProtectedSetting = @{
-            "commandToExecute" = "powershell -ExecutionPolicy Unrestricted -File scripts\Upload-Content.ps1 $RemoteFolder $StorageAccount $UploadContainer $SubFolder $SASTokenToUploadFile"
+            "commandToExecute" = "powershell -ExecutionPolicy Unrestricted -File scripts\Upload-Content.ps1 $RemoteFolderToUpload $StorageAccount $UploadContainer $BlobPathForRemoteUploadedContent $SASTokenToUploadFile"
         };
     }
     elseif ($InstallPCBATools.IsPresent) {
         $ProtectedSetting = @{
-            "commandToExecute" = "powershell -ExecutionPolicy Unrestricted -File scripts\Install-PCBATools.ps1 .\deployment-files .\pcba-test"
+            "commandToExecute" = "powershell -ExecutionPolicy Unrestricted -File scripts\Install-PCBATools.ps1 .\deployment-files $TelitBinaryCopyToFolder"
         };
     }
 
